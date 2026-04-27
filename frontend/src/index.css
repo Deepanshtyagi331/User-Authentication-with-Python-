@@ -1,29 +1,19 @@
-@import "tailwindcss";
-
-@theme {
-  --font-sans: "Inter", "Outfit", "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-  
-  --color-brand-50: #f0f7ff;
-  --color-brand-100: #e0effe;
-  --color-brand-200: #bae0fd;
-  --color-brand-300: #7cc8fb;
-  --color-brand-400: #38abf8;
-  --color-brand-500: #0e91e9;
-  --color-brand-600: #0274c7;
-  --color-brand-700: #035ca1;
-  --color-brand-800: #074e85;
-  --color-brand-900: #0c426e;
-  --color-brand-950: #082a49;
-
-  --color-accent-50: #fdf2f8;
-  --color-accent-500: #ec4899;
-  --color-accent-600: #db2777;
-}
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
 @layer base {
+  :root {
+    --color-brand-50: #f0f7ff;
+    --color-brand-600: #0274c7;
+    --color-brand-700: #035ca1;
+    --color-brand-950: #082a49;
+    --color-accent-500: #ec4899;
+  }
+  
   body {
     @apply bg-slate-50 text-slate-900 antialiased;
-    font-family: var(--font-sans);
+    font-family: "Inter", system-ui, sans-serif;
   }
 }
 
@@ -31,13 +21,24 @@
   .glass-card {
     @apply bg-white/80 backdrop-blur-md border border-white/20 shadow-xl;
   }
-  
-  .btn-primary {
-    @apply px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white font-semibold rounded-lg shadow-md transition-all active:scale-95;
-  }
 }
 
-.gradient-bg {
-  background: radial-gradient(circle at top right, var(--color-brand-50), transparent),
-              radial-gradient(circle at bottom left, var(--color-accent-50), transparent);
+/* Animations */
+@keyframes blob {
+  0% { transform: translate(0px, 0px) scale(1); }
+  33% { transform: translate(30px, -50px) scale(1.1); }
+  66% { transform: translate(-20px, 20px) scale(0.9); }
+  100% { transform: translate(0px, 0px) scale(1); }
+}
+
+.animate-blob {
+  animation: blob 7s infinite;
+}
+
+.animation-delay-2000 {
+  animation-delay: 2s;
+}
+
+.animation-delay-4000 {
+  animation-delay: 4s;
 }
