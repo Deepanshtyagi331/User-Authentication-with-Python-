@@ -15,3 +15,5 @@ dist/
 # IDE
 .vscode/
 .idea/
+
+staticfiles/
