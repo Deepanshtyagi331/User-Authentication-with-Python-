@@ -5,7 +5,7 @@ A basic project management tool featuring user authentication, project creation,
 ## Features List
 
 - **Authentication**: JWT-based register/login with hashed passwords via Custom User Model.
-- **Projects Management**: Authenticated users can Create, Read, Update, and Delete projects.
+- **Projects Management**: Authenticated users can Create, Read, Update, and Delete projects
 - **Tasks Management**: Tasks belong to projects with full CRUD capabilities.
 - **Filters & Search**: Tasks can be filtered by status. Projects can be searched by title and description.
 - **Modern UI**: Fully responsive Dashboard and Project Tracking UI using React, TailwindCSS v4, React Hook Form, Yup, and Zustand.
