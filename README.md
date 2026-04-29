@@ -2,7 +2,7 @@
 
 A basic project management tool featuring user authentication, project creation, and task tracking.
 
-## Features List
+## Features List 
 
 - **Authentication**: JWT-based register/login with hashed passwords via Custom User Model.
 - **Projects Management**: Authenticated users can Create, Read, Update, and Delete projects
