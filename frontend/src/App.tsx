@@ -1,24 +1,46 @@
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import { Layout } from './components/Layout';
+import React from 'react';
+import { Routes, Route, Outlet } from 'react-router-dom';
+import { AuthProvider } from './contexts/AuthContext';
+import { ProtectedRoute } from './components/ProtectedRoute';
+import { Navbar } from './components/Navbar';
 import { Login } from './pages/Login';
 import { Register } from './pages/Register';
 import { Dashboard } from './pages/Dashboard';
-import { ProjectDetail } from './pages/ProjectDetail';
+import { ProjectForm } from './pages/ProjectForm';
+import { ProjectDetails } from './pages/ProjectDetails';
+import { TaskForm } from './pages/TaskForm';
 
-function App() {
+const Layout: React.FC = () => {
   return (
-    <Router>
+    <div className="min-h-screen bg-dark-bg text-white">
+      <Navbar />
+      <main>
+        <Outlet />
+      </main>
+    </div>
+  );
+};
+
+export const App: React.FC = () => {
+  return (
+    <AuthProvider>
       <Routes>
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
-        <Route path="/" element={<Layout />}>
-          <Route index element={<Dashboard />} />
-          <Route path="project/:id" element={<ProjectDetail />} />
+        
+        <Route element={<ProtectedRoute />}>
+          <Route element={<Layout />}>
+            <Route path="/" element={<Dashboard />} />
+            <Route path="/projects/new" element={<ProjectForm />} />
+            <Route path="/projects/:id" element={<ProjectDetails />} />
+            <Route path="/projects/:id/edit" element={<ProjectForm />} />
+            <Route path="/projects/:projectId/tasks/new" element={<TaskForm />} />
+            <Route path="/projects/:projectId/tasks/:taskId/edit" element={<TaskForm />} />
+          </Route>
         </Route>
-        <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
-    </Router>
+    </AuthProvider>
   );
-}
+};
 
 export default App;

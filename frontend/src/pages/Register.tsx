@@ -1,129 +1,152 @@
+import React, { useState } from 'react';
+import { useNavigate, Link } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
-import { useNavigate, Link, Navigate } from 'react-router-dom';
-import { useAuthStore } from '../store/useAuthStore';
-import api from '../api/axios';
-import { useState } from 'react';
+import { motion } from 'framer-motion';
+import { AlertCircle, Code2, Loader2 } from 'lucide-react';
+import api from '../utils/api';
 
-const schema = yup.object({
-  first_name: yup.string().required('First name is required'),
-  last_name: yup.string().required('Last name is required'),
+const schema = yup.object().shape({
+  username: yup.string().required('Username is required').min(3, 'Must be at least 3 characters'),
   email: yup.string().email('Must be a valid email').required('Email is required'),
-  password: yup.string().min(6, 'Password must be at least 6 characters').required('Password is required'),
-}).required();
+  password: yup.string().required('Password is required').min(6, 'Must be at least 6 characters'),
+  password_confirm: yup.string()
+    .oneOf([yup.ref('password')], 'Passwords must match')
+    .required('Confirm your password'),
+});
 
 type FormData = yup.InferType<typeof schema>;
 
-export const Register = () => {
-  const { register, handleSubmit, formState: { errors } } = useForm<FormData>({
-    resolver: yupResolver(schema) as any
-  });
-  const [apiError, setApiError] = useState('');
-  const token = useAuthStore(state => state.token);
+export const Register: React.FC = () => {
+  const [error, setError] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
-
-  if (token) return <Navigate to="/" replace />;
+  
+  const { register, handleSubmit, formState: { errors } } = useForm<FormData>({
+    resolver: yupResolver(schema)
+  });
 
   const onSubmit = async (data: FormData) => {
+    setIsLoading(true);
+    setError(null);
     try {
-      await api.post('auth/register/', data);
+      // Assuming a standard Django view that returns a token or requires login after
+      await api.post('/auth/register/', {
+        username: data.username,
+        email: data.email,
+        password: data.password
+      });
+      // Optionally login right after registration if endpoint supports it, otherwise redirect to login
       navigate('/login');
     } catch (err: any) {
-      setApiError('Registration failed. Email might be taken.');
+      setError(err.response?.data?.detail || 'Registration failed. Username may be taken.');
+    } finally {
+      setIsLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen grid lg:grid-cols-2 bg-slate-50 w-full animate-in fade-in duration-700">
-      <div className="hidden lg:flex flex-col justify-center px-12 bg-brand-950 relative overflow-hidden">
-        <div className="absolute inset-0 opacity-20">
-            <div className="absolute top-0 -left-4 w-72 h-72 bg-brand-500 rounded-full mix-blend-multiply filter blur-3xl animate-blob"></div>
-            <div className="absolute top-0 -right-4 w-72 h-72 bg-accent-500 rounded-full mix-blend-multiply filter blur-3xl animate-blob animation-delay-2000"></div>
-            <div className="absolute -bottom-8 left-20 w-72 h-72 bg-brand-300 rounded-full mix-blend-multiply filter blur-3xl animate-blob animation-delay-4000"></div>
+    <div className="min-h-screen flex flex-col justify-center items-center p-4 relative overflow-hidden">
+      {/* Background decorations */}
+      <div className="absolute top-[10%] right-[-5%] w-96 h-96 bg-neon-pink/20 rounded-full blur-[120px]" />
+      <div className="absolute bottom-[-10%] left-[-10%] w-96 h-96 bg-neon-purple/20 rounded-full blur-[120px]" />
+
+      <motion.div 
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+        className="w-full max-w-md z-10"
+      >
+        <div className="text-center mb-8">
+          <motion.div 
+            initial={{ scale: 0 }}
+            animate={{ scale: 1 }}
+            transition={{ type: "spring", stiffness: 260, damping: 20, delay: 0.2 }}
+            className="inline-flex items-center justify-center w-20 h-20 rounded-2xl bg-white/5 border border-white/10 shadow-[0_0_30px_rgba(176,38,255,0.2)] mb-6"
+          >
+            <Code2 className="w-10 h-10 text-neon-purple" />
+          </motion.div>
+          <h2 className="text-4xl font-bold mb-2">Create Account</h2>
+          <p className="text-gray-400">Join <span className="text-gradient font-semibold">NeonManage</span> today</p>
         </div>
-        
-        <div className="relative">
-          <h1 className="text-5xl font-extrabold text-white leading-tight">
-            Join the <br /> <span className="text-brand-400">Future</span> of Workflow.
-          </h1>
-          <p className="mt-6 text-xl text-brand-100 max-w-md">
-            Seamlessly coordinate your team, automate tasks, and hit your milestones faster.
-          </p>
-        </div>
-      </div>
 
-      <div className="flex flex-col justify-center py-12 px-4 sm:px-6 lg:px-20 bg-white">
-        <div className="max-w-md w-full mx-auto">
-          <div className="text-left mb-10">
-            <h2 className="text-3xl font-bold text-slate-900 tracking-tight">Create Account</h2>
-            <p className="mt-2 text-slate-500">Fill in the details to get started</p>
-          </div>
+        <div className="glass-panel p-8">
+          {error && (
+            <motion.div 
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: 'auto' }}
+              className="bg-red-500/10 border border-red-500/50 text-red-200 px-4 py-3 rounded-xl mb-6 flex items-center gap-3"
+            >
+              <AlertCircle className="w-5 h-5 flex-shrink-0" />
+              <p className="text-sm">{error}</p>
+            </motion.div>
+          )}
 
-          <form className="space-y-6" onSubmit={handleSubmit(onSubmit)}>
-            {apiError && (
-              <div className="text-red-500 text-sm font-medium bg-red-50 p-4 rounded-xl border border-red-100 animate-in slide-in-from-top-2">
-                {apiError}
-              </div>
-            )}
-            
-            <div className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-semibold text-slate-700">First name</label>
-                  <input
-                    {...register("first_name")}
-                    className="mt-1 block w-full px-4 py-3 bg-slate-50 border border-slate-200 text-slate-900 rounded-xl focus:ring-2 focus:ring-brand-500 outline-none transition-all"
-                  />
-                  <p className="text-red-500 text-xs mt-1 font-medium">{errors.first_name?.message}</p>
-                </div>
-                <div>
-                  <label className="block text-sm font-semibold text-slate-700">Last name</label>
-                  <input
-                    {...register("last_name")}
-                    className="mt-1 block w-full px-4 py-3 bg-slate-50 border border-slate-200 text-slate-900 rounded-xl focus:ring-2 focus:ring-brand-500 outline-none transition-all"
-                  />
-                  <p className="text-red-500 text-xs mt-1 font-medium">{errors.last_name?.message}</p>
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-sm font-semibold text-slate-700">Email address</label>
-                <input
-                  {...register("email")}
-                  placeholder="john@example.com"
-                  className="mt-1 block w-full px-4 py-3 bg-slate-50 border border-slate-200 text-slate-900 rounded-xl focus:ring-2 focus:ring-brand-500 outline-none transition-all"
-                />
-                <p className="text-red-500 text-xs mt-1 font-medium">{errors.email?.message}</p>
-              </div>
-
-              <div>
-                <label className="block text-sm font-semibold text-slate-700">Password</label>
-                <input
-                  type="password"
-                  {...register("password")}
-                  placeholder="••••••••"
-                  className="mt-1 block w-full px-4 py-3 bg-slate-50 border border-slate-200 text-slate-900 rounded-xl focus:ring-2 focus:ring-brand-500 outline-none transition-all"
-                />
-                <p className="text-red-500 text-xs mt-1 font-medium">{errors.password?.message}</p>
-              </div>
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-300 mb-1.5">Username</label>
+              <input 
+                {...register('username')}
+                type="text" 
+                className="input-glass w-full"
+                placeholder="johndoe"
+              />
+              {errors.username && <p className="text-neon-pink text-xs mt-1.5">{errors.username.message}</p>}
             </div>
 
-            <button type="submit" className="w-full flex justify-center py-4 px-4 border border-transparent text-sm font-bold rounded-xl text-white bg-brand-600 hover:bg-brand-700 shadow-lg shadow-brand-200 active:scale-[0.98] transition-all">
-              Create account
+            <div>
+              <label className="block text-sm font-medium text-gray-300 mb-1.5">Email</label>
+              <input 
+                {...register('email')}
+                type="email" 
+                className="input-glass w-full"
+                placeholder="john@example.com"
+              />
+              {errors.email && <p className="text-neon-pink text-xs mt-1.5">{errors.email.message}</p>}
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-300 mb-1.5">Password</label>
+              <input 
+                {...register('password')}
+                type="password" 
+                className="input-glass w-full"
+                placeholder="••••••••"
+              />
+              {errors.password && <p className="text-neon-pink text-xs mt-1.5">{errors.password.message}</p>}
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-300 mb-1.5">Confirm Password</label>
+              <input 
+                {...register('password_confirm')}
+                type="password" 
+                className="input-glass w-full"
+                placeholder="••••••••"
+              />
+              {errors.password_confirm && <p className="text-neon-pink text-xs mt-1.5">{errors.password_confirm.message}</p>}
+            </div>
+
+            <button 
+              type="submit" 
+              disabled={isLoading}
+              className="btn-primary w-full flex justify-center items-center mt-4"
+            >
+              {isLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Create Account'}
             </button>
-
-            <div className="text-center mt-8">
-              <p className="text-sm text-slate-600">
-                Already have an account? 
-                <Link to="/login" className="ml-1 font-bold text-brand-600 hover:text-brand-700 transition-colors">
-                  Sign in
-                </Link>
-              </p>
-            </div>
           </form>
+          
+          <div className="mt-6 text-center">
+            <p className="text-gray-400 text-sm">
+              Already have an account?{' '}
+              <Link to="/login" className="text-neon-purple hover:text-white transition-colors font-medium">
+                Sign in
+              </Link>
+            </p>
+          </div>
         </div>
-      </div>
+      </motion.div>
     </div>
   );
 };
